@@ -26,11 +26,30 @@ export function hasYoutubeApiKey() {
 }
 
 function getYoutubeApiKey() {
-  const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY || getStoredYoutubeApiKey()
+  const apiKey = getStoredYoutubeApiKey() || import.meta.env.VITE_YOUTUBE_API_KEY
   if (!apiKey) {
     throw new Error('Add a YouTube API key in this form or set VITE_YOUTUBE_API_KEY in your .env file.')
   }
   return apiKey
+}
+
+function formatYoutubeError(payload, fallback) {
+  const message = payload?.error?.message || fallback
+  const reason = payload?.error?.errors?.[0]?.reason
+
+  if (/blocked/i.test(message)) {
+    return [
+      message,
+      'Enable YouTube Data API v3 for this key and allow these methods: channels.list, search.list, playlistItems.list, videos.list.',
+      'If your .env key is restricted, paste an unrestricted/browser-allowed key in the form to override it.',
+    ].join(' ')
+  }
+
+  if (reason === 'keyInvalid') return 'Invalid YouTube API key. Paste a valid API key or update VITE_YOUTUBE_API_KEY.'
+  if (reason === 'quotaExceeded') return 'YouTube API quota exceeded for this key. Use another key or wait for quota reset.'
+  if (reason === 'accessNotConfigured') return 'YouTube Data API v3 is not enabled for this Google Cloud project.'
+
+  return message
 }
 
 function normalizeIdentifier(input) {
@@ -65,9 +84,9 @@ function initials(title) {
     .join('') || 'YT'
 }
 
-async function youtubeRequest(path, params) {
+async function youtubeRequest(path, params, apiKeyOverride) {
   const url = new URL(`${YOUTUBE_API_BASE_URL}/${path}`)
-  Object.entries({ ...params, key: getYoutubeApiKey() }).forEach(([key, value]) => {
+  Object.entries({ ...params, key: apiKeyOverride || getYoutubeApiKey() }).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value)
   })
 
@@ -75,11 +94,24 @@ async function youtubeRequest(path, params) {
   const payload = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    const message = payload?.error?.message || `YouTube API request failed (${response.status})`
-    throw new Error(message)
+    throw new Error(formatYoutubeError(payload, `YouTube API request failed (${response.status})`))
   }
 
   return payload
+}
+
+export async function testYoutubeApiKey(apiKey) {
+  const trimmed = apiKey.trim()
+  if (!trimmed) throw new Error('Enter a YouTube API key to test.')
+
+  const payload = await youtubeRequest('channels', {
+    part: 'id',
+    forHandle: '@YouTube',
+    maxResults: 1,
+  }, trimmed)
+
+  if (!payload.items?.length) throw new Error('The API key responded, but the YouTube test channel was not returned.')
+  return true
 }
 
 function channelFromApi(item, sourceIdentifier, manager = 'Live API') {

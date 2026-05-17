@@ -21,6 +21,7 @@ import {
   loadLiveChannels,
   saveYoutubeApiKey,
   saveLiveChannels,
+  testYoutubeApiKey,
 } from '../../services/youtubeApi'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
@@ -66,8 +67,10 @@ export default function ChannelsPage() {
   const [recentUploads, setRecentUploads] = useState([])
   const [loadingChannel, setLoadingChannel] = useState(false)
   const [loadingUploads, setLoadingUploads] = useState(false)
+  const [testingApiKey, setTestingApiKey] = useState(false)
+  const [apiKeyMessage, setApiKeyMessage] = useState('')
   const [error, setError] = useState('')
-  const shouldShowApiKeyInput = !hasYoutubeEnvApiKey()
+  const hasEnvApiKey = hasYoutubeEnvApiKey()
 
   const allChannels = useMemo(() => {
     const liveIds = new Set(liveChannels.map((channel) => channel.id))
@@ -118,15 +121,16 @@ export default function ChannelsPage() {
   const connectChannel = async (event) => {
     event.preventDefault()
     setError('')
+    setApiKeyMessage('')
     setLoadingChannel(true)
 
     try {
-      if (shouldShowApiKeyInput) {
-        if (!apiKeyInput.trim()) {
-          throw new Error('Enter your YouTube API key or add VITE_YOUTUBE_API_KEY to your .env file.')
-        }
+      if (apiKeyInput.trim()) {
         saveYoutubeApiKey(apiKeyInput)
+      } else if (!hasYoutubeApiKey()) {
+        throw new Error('Enter your YouTube API key or add VITE_YOUTUBE_API_KEY to your .env file.')
       }
+
       const liveChannel = await fetchLiveChannel(channelIdentifier, manager || 'Studio Admin')
       setLiveChannels((current) => [liveChannel, ...current.filter((channel) => channel.id !== liveChannel.id)])
       setSelectedChannel(liveChannel)
@@ -135,6 +139,30 @@ export default function ChannelsPage() {
       setError(err.message || 'Unable to connect this YouTube channel.')
     } finally {
       setLoadingChannel(false)
+    }
+  }
+
+  const testCurrentApiKey = async () => {
+    setError('')
+    setApiKeyMessage('')
+    setTestingApiKey(true)
+
+    try {
+      if (!apiKeyInput.trim()) {
+        throw new Error(
+          hasEnvApiKey
+            ? 'Paste a key to test an override, or leave this blank to use the .env key when connecting.'
+            : 'Paste a YouTube API key before testing.',
+        )
+      }
+
+      await testYoutubeApiKey(apiKeyInput)
+      saveYoutubeApiKey(apiKeyInput)
+      setApiKeyMessage('API key test passed and this browser will use it for live YouTube data.')
+    } catch (err) {
+      setError(err.message || 'Unable to test this YouTube API key.')
+    } finally {
+      setTestingApiKey(false)
     }
   }
 
@@ -179,24 +207,34 @@ export default function ChannelsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4 p-5" onSubmit={connectChannel}>
-                  {shouldShowApiKeyInput && (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
-                      <div className="flex gap-3">
-                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-                        <div>
-                          <p className="font-black">{hasYoutubeApiKey() ? 'Using browser-saved YouTube API key' : 'YouTube API key required'}</p>
-                          <p className="mt-1">
-                            Paste your API key below to use it immediately in this browser, or add
-                            <code> VITE_YOUTUBE_API_KEY=your_key</code> to <code>.env</code> and restart Vite.
-                          </p>
-                        </div>
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+                    <div className="flex gap-3">
+                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                      <div>
+                        <p className="font-black">
+                          {apiKeyInput.trim()
+                            ? 'Browser API key override is ready'
+                            : hasEnvApiKey
+                              ? 'Using .env API key unless you paste an override'
+                              : 'YouTube API key required'}
+                        </p>
+                        <p className="mt-1">
+                          Paste a YouTube Data API v3 key below to use it immediately. A browser-entered key
+                          overrides <code> VITE_YOUTUBE_API_KEY</code>, which helps when the local env key is blocked
+                          or restricted.
+                        </p>
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   {error && (
                     <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
                       {error}
+                    </div>
+                  )}
+                  {apiKeyMessage && (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                      {apiKeyMessage}
                     </div>
                   )}
 
@@ -209,19 +247,26 @@ export default function ChannelsPage() {
                       placeholder="narasimhaakkisetty2112"
                     />
                   </label>
-                  {shouldShowApiKeyInput && (
-                    <label className="block text-sm font-bold">
-                      YouTube API key
-                      <input
-                        value={apiKeyInput}
-                        onChange={(event) => setApiKeyInput(event.target.value)}
-                        className="mt-2 h-11 w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 font-normal outline-none focus:border-blue-500"
-                        placeholder="AIza..."
-                        type="password"
-                        autoComplete="off"
-                      />
-                    </label>
-                  )}
+                  <label className="block text-sm font-bold">
+                    YouTube API key {hasEnvApiKey ? <span className="font-normal text-[rgb(var(--muted-foreground))]">(optional override)</span> : null}
+                    <input
+                      value={apiKeyInput}
+                      onChange={(event) => setApiKeyInput(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 font-normal outline-none focus:border-blue-500"
+                      placeholder="AIza..."
+                      type="password"
+                      autoComplete="off"
+                    />
+                  </label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={testCurrentApiKey}
+                    disabled={testingApiKey}
+                  >
+                    {testingApiKey ? 'Testing API key...' : 'Test API key'}
+                  </Button>
                   <label className="block text-sm font-bold">
                     Assigned manager
                     <input
