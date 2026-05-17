@@ -55,7 +55,7 @@ export default function ChannelsPage() {
   const [search, setSearch] = useState('')
   const [view, setView] = useState('table')
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [channelIdentifier, setChannelIdentifier] = useState('nisharath2326')
+  const [channelIdentifier, setChannelIdentifier] = useState('narasimhaakkisetty2112')
   const [manager, setManager] = useState('Studio Admin')
   const [liveChannels, setLiveChannels] = useState(() => loadLiveChannels())
   const [selectedChannel, setSelectedChannel] = useState(() => loadLiveChannels()[0] || null)
@@ -195,7 +195,7 @@ export default function ChannelsPage() {
                       value={channelIdentifier}
                       onChange={(event) => setChannelIdentifier(event.target.value)}
                       className="mt-2 h-11 w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 font-normal outline-none focus:border-blue-500"
-                      placeholder="nisharath2326"
+                      placeholder="narasimhaakkisetty2112"
                     />
                   </label>
                   <label className="block text-sm font-bold">
