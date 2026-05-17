@@ -71,6 +71,13 @@ export default function ChannelsPage() {
   const [apiKeyMessage, setApiKeyMessage] = useState('')
   const [error, setError] = useState('')
   const hasEnvApiKey = hasYoutubeEnvApiKey()
+  const apiKeyStatus = apiKeyMessage
+    ? 'API key test passed'
+    : apiKeyInput.trim()
+      ? 'Browser API key entered - click Test API key before connecting'
+      : hasEnvApiKey
+        ? 'Using .env API key unless you paste an override'
+        : 'YouTube API key required'
 
   const allChannels = useMemo(() => {
     const liveIds = new Set(liveChannels.map((channel) => channel.id))
@@ -211,25 +218,27 @@ export default function ChannelsPage() {
                     <div className="flex gap-3">
                       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                       <div>
-                        <p className="font-black">
-                          {apiKeyInput.trim()
-                            ? 'Browser API key override is ready'
-                            : hasEnvApiKey
-                              ? 'Using .env API key unless you paste an override'
-                              : 'YouTube API key required'}
-                        </p>
+                        <p className="font-black">{apiKeyStatus}</p>
                         <p className="mt-1">
                           Paste a YouTube Data API v3 key below to use it immediately. A browser-entered key
                           overrides <code> VITE_YOUTUBE_API_KEY</code>, which helps when the local env key is blocked
-                          or restricted.
+                          or restricted. Test the key before connecting a channel.
                         </p>
                       </div>
                     </div>
                   </div>
 
                   {error && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
-                      {error}
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
+                      <p className="font-black">Unable to access YouTube Data API</p>
+                      <p className="mt-1 font-semibold">{error}</p>
+                      <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs">
+                        <li>Open Google Cloud Console for the project that owns this API key.</li>
+                        <li>Enable <b>YouTube Data API v3</b> in APIs & Services.</li>
+                        <li>Open Credentials &gt; this API key &gt; API restrictions.</li>
+                        <li>Allow <b>YouTube Data API v3</b>, or temporarily choose <b>Do not restrict key</b> for testing.</li>
+                        <li>If using website restrictions, allow <b>http://localhost:5173/*</b> and your production domain.</li>
+                      </ol>
                     </div>
                   )}
                   {apiKeyMessage && (

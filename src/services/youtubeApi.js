@@ -40,14 +40,17 @@ function formatYoutubeError(payload, fallback) {
   if (/blocked/i.test(message)) {
     return [
       message,
-      'Enable YouTube Data API v3 for this key and allow these methods: channels.list, search.list, playlistItems.list, videos.list.',
-      'If your .env key is restricted, paste an unrestricted/browser-allowed key in the form to override it.',
+      'This is a Google Cloud API-key restriction, not an app error.',
+      'Fix: Google Cloud Console -> APIs & Services -> Enabled APIs: enable YouTube Data API v3.',
+      'Then Credentials -> your API key -> API restrictions: allow YouTube Data API v3 or choose Do not restrict key.',
+      'If HTTP referrer restrictions are enabled, allow http://localhost:5173/* and your deployed domain.',
+      'Required methods: channels.list, search.list, playlistItems.list, videos.list.',
     ].join(' ')
   }
 
-  if (reason === 'keyInvalid') return 'Invalid YouTube API key. Paste a valid API key or update VITE_YOUTUBE_API_KEY.'
+  if (reason === 'keyInvalid') return 'Invalid YouTube API key. Paste a valid key from Google Cloud Console.'
   if (reason === 'quotaExceeded') return 'YouTube API quota exceeded for this key. Use another key or wait for quota reset.'
-  if (reason === 'accessNotConfigured') return 'YouTube Data API v3 is not enabled for this Google Cloud project.'
+  if (reason === 'accessNotConfigured') return 'YouTube Data API v3 is not enabled for this Google Cloud project. Enable it in APIs & Services.'
 
   return message
 }
