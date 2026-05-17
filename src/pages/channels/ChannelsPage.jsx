@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowUpDown, Edit, Filter, Grid, List, PlusCircle, Search, SlidersHorizontal, Users } from 'lucide-react'
+import { ArrowUpDown, Edit, Filter, Grid, List, PlusCircle, SlidersHorizontal, Users } from 'lucide-react'
 import { channels } from '../../data/enterpriseData'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'

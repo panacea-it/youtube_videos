@@ -20,7 +20,6 @@ import {
   UploadCloud,
   Users,
   Video,
-  Youtube,
 } from 'lucide-react'
 
 export const systemHealth = [
@@ -30,7 +29,7 @@ export const systemHealth = [
 ]
 
 export const statCards = [
-  { title: 'Total channels', value: '58', delta: '+4 this month', trend: 'up', icon: Youtube, accent: 'red' },
+  { title: 'Total channels', value: '58', delta: '+4 this month', trend: 'up', icon: PlayCircle, accent: 'red' },
   { title: 'Total videos', value: '75.4K', delta: '+1,248', trend: 'up', icon: Video, accent: 'blue' },
   { title: 'Published videos', value: '69.8K', delta: '92.5% live', trend: 'up', icon: CheckCircle, accent: 'green' },
   { title: 'Scheduled videos', value: '842', delta: 'next 14 days', trend: 'flat', icon: Calendar, accent: 'violet' },
@@ -324,14 +323,14 @@ export const permissions = [
 export const reportCards = [
   { title: 'Revenue reports', icon: DollarSign, cadence: 'Daily + weekly', exports: 'PDF, CSV, Excel' },
   { title: 'Video reports', icon: Video, cadence: 'Weekly', exports: 'CSV, Excel' },
-  { title: 'Channel reports', icon: Youtube, cadence: 'Monthly', exports: 'PDF, CSV' },
+  { title: 'Channel reports', icon: PlayCircle, cadence: 'Monthly', exports: 'PDF, CSV' },
   { title: 'Team reports', icon: Users, cadence: 'Weekly', exports: 'PDF, Excel' },
 ]
 
 export const settingsSections = [
   { title: 'General settings', icon: Activity, description: 'Workspace identity, locale, time zone, and defaults.' },
   { title: 'API integrations', icon: UploadCloud, description: 'Connect data warehouses, Slack, HubSpot, and Monday.com.' },
-  { title: 'YouTube API settings', icon: Youtube, description: 'Quota monitoring, OAuth apps, sync windows, and scopes.' },
+  { title: 'YouTube API settings', icon: PlayCircle, description: 'Quota monitoring, OAuth apps, sync windows, and scopes.' },
   { title: 'AI provider settings', icon: Bot, description: 'Model routing, provider keys, spending caps, and audit logs.' },
   { title: 'Notification settings', icon: Bell, description: 'Alert rules for teams, channels, revenue, and copyright.' },
   { title: 'User permissions', icon: Users, description: 'Roles, teams, invitations, approvals, and SSO policies.' },
@@ -343,7 +342,7 @@ export const searchSuggestions = [
   { label: 'Open video management', path: '/content/videos', icon: PlayCircle },
   { label: 'Review revenue anomalies', path: '/revenue', icon: DollarSign },
   { label: 'Generate AI titles', path: '/ai-tools', icon: Bot },
-  { label: 'View channel sync health', path: '/channels', icon: Youtube },
+  { label: 'View channel sync health', path: '/channels', icon: PlayCircle },
   { label: 'Export executive report', path: '/reports', icon: FileText },
 ]
 

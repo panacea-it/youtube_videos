@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  Youtube,
   FolderTree,
   Video,
   UploadCloud,
@@ -14,6 +13,7 @@ import {
   Users,
   Activity,
   Settings,
+  PlayCircle,
 } from 'lucide-react'
 
 export const SIDEBAR_DASHBOARD = {
@@ -27,9 +27,9 @@ export const SIDEBAR_GROUPS = [
   {
     id: 'operations',
     label: 'Operations',
-    icon: Youtube,
+    icon: PlayCircle,
     children: [
-      { label: 'Channels', path: '/channels', icon: Youtube },
+      { label: 'Channels', path: '/channels', icon: PlayCircle },
       { label: 'Categories', path: '/categories', icon: FolderTree },
       { label: 'Videos', path: '/content/videos', icon: Video },
       { label: 'Upload Center', path: '/upload-center', icon: UploadCloud },
