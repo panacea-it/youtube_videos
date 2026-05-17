@@ -1,9 +1,9 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CheckCircle, Shield, UserPlus, Users } from 'lucide-react'
 import { permissions, teamMembers } from '../../data/enterpriseData'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { HorizontalBars } from '../../components/ui/charts'
 
 export default function TeamManagementPage() {
   return (
@@ -96,17 +96,7 @@ export default function TeamManagementPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={teamMembers}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                      <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} />
-                      <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                      <Tooltip />
-                      <Bar dataKey="productivity" fill="#2563eb" radius={[10, 10, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <HorizontalBars data={teamMembers} labelKey="name" valueKey="productivity" color="#2563eb" />
               </CardContent>
             </Card>
 

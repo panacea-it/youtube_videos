@@ -1,19 +1,3 @@
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Calendar, Download, Filter, Globe, Monitor, Smartphone, Tablet } from 'lucide-react'
 import {
   analyticsMetrics,
@@ -29,23 +13,10 @@ import {
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { BarChartPanel, DonutChartPanel, LineChartPanel } from '../../components/ui/charts'
 
 const colors = ['#ef4444', '#2563eb', '#10b981', '#8b5cf6']
 const deviceIcons = [Smartphone, Monitor, Globe, Tablet]
-
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 shadow-xl">
-      <p className="text-xs font-bold">{label}</p>
-      {payload.map((item) => (
-        <p key={item.name} className="mt-1 text-xs text-[rgb(var(--muted-foreground))]">
-          <span style={{ color: item.color }} className="font-bold">{item.name}</span>: {item.value?.toLocaleString?.() || item.value}
-        </p>
-      ))}
-    </div>
-  )
-}
 
 export default function AnalyticsPage() {
   return (
@@ -95,19 +66,16 @@ export default function AnalyticsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Area type="monotone" dataKey="ads" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.25} />
-                    <Area type="monotone" dataKey="sponsors" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} />
-                    <Area type="monotone" dataKey="memberships" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <LineChartPanel
+                data={revenueSeries}
+                xKey="date"
+                area
+                series={[
+                  { key: 'ads', label: 'Ads', color: '#ef4444' },
+                  { key: 'sponsors', label: 'Sponsors', color: '#8b5cf6' },
+                  { key: 'memberships', label: 'Memberships', color: '#10b981' },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -119,18 +87,14 @@ export default function AnalyticsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={growthSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Line type="monotone" dataKey="subscribers" stroke="#2563eb" strokeWidth={3} dot={false} />
-                    <Line type="monotone" dataKey="views" stroke="#ef4444" strokeWidth={3} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <LineChartPanel
+                data={growthSeries}
+                xKey="date"
+                series={[
+                  { key: 'subscribers', label: 'Subscribers', color: '#2563eb' },
+                  { key: 'views', label: 'Views', color: '#ef4444' },
+                ]}
+              />
             </CardContent>
           </Card>
         </section>
@@ -144,19 +108,15 @@ export default function AnalyticsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={performanceSeries}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                    <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Bar dataKey="views" fill="#ef4444" radius={[10, 10, 0, 0]} />
-                    <Bar dataKey="retention" fill="#2563eb" radius={[10, 10, 0, 0]} />
-                    <Bar dataKey="ctr" fill="#10b981" radius={[10, 10, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <BarChartPanel
+                data={performanceSeries}
+                xKey="name"
+                bars={[
+                  { key: 'views', label: 'Views', color: '#ef4444' },
+                  { key: 'retention', label: 'Retention', color: '#2563eb' },
+                  { key: 'ctr', label: 'CTR', color: '#10b981' },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -168,18 +128,7 @@ export default function AnalyticsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-52">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={deviceAnalytics} dataKey="value" innerRadius={58} outerRadius={88} paddingAngle={4}>
-                      {deviceAnalytics.map((entry, index) => (
-                        <Cell key={entry.name} fill={colors[index % colors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<ChartTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <DonutChartPanel data={deviceAnalytics} colors={colors} className="h-52" />
               <div className="mt-4 space-y-2">
                 {deviceAnalytics.map((item, index) => {
                   const Icon = deviceIcons[index]
@@ -207,17 +156,11 @@ export default function AnalyticsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={audienceRetention}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                    <XAxis dataKey="point" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                    <Tooltip content={<ChartTooltip />} />
-                    <Line type="monotone" dataKey="retention" stroke="#8b5cf6" strokeWidth={3} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <LineChartPanel
+                data={audienceRetention}
+                xKey="point"
+                series={[{ key: 'retention', label: 'Retention', color: '#8b5cf6' }]}
+              />
             </CardContent>
           </Card>
 

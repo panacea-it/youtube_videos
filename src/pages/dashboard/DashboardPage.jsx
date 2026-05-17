@@ -1,20 +1,3 @@
-import { motion } from 'framer-motion'
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Calendar, Download, Filter, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react'
 import {
   audienceRetention,
@@ -33,6 +16,7 @@ import {
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Badge } from '../../components/ui/badge'
+import { BarChartPanel, DonutChartPanel, LineChartPanel } from '../../components/ui/charts'
 
 const chartColors = ['#ef4444', '#2563eb', '#10b981', '#8b5cf6']
 
@@ -50,35 +34,11 @@ function accentClass(accent) {
   return map[accent] || map.blue
 }
 
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 shadow-xl">
-      <p className="text-xs font-bold text-[rgb(var(--foreground))]">{label}</p>
-      <div className="mt-2 space-y-1">
-        {payload.map((item) => (
-          <p key={item.name} className="text-xs text-[rgb(var(--muted-foreground))]">
-            <span className="font-semibold" style={{ color: item.color }}>
-              {item.name}
-            </span>
-            : {item.value?.toLocaleString?.() || item.value}
-          </p>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function MetricCard({ stat, index }) {
+function MetricCard({ stat }) {
   const Icon = stat.icon
   const TrendIcon = stat.trend === 'down' ? TrendingDown : TrendingUp
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      className="surface-card rounded-2xl p-4"
-    >
+    <article className="surface-card rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-xl">
       <div className="flex items-start justify-between gap-3">
         <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${accentClass(stat.accent)}`}>
           <Icon className="h-5 w-5" />
@@ -90,7 +50,7 @@ function MetricCard({ stat, index }) {
       </div>
       <p className="mt-5 text-sm font-semibold text-[rgb(var(--muted-foreground))]">{stat.title}</p>
       <p className="mt-1 text-2xl font-black tracking-tight text-[rgb(var(--foreground))]">{stat.value}</p>
-    </motion.article>
+    </article>
   )
 }
 
@@ -162,24 +122,15 @@ export default function DashboardPage() {
                   <Badge variant="success">+12.9%</Badge>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={revenueSeries}>
-                        <defs>
-                          <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.42} />
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.02} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                        <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
-                        <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                        <Tooltip content={<ChartTooltip />} />
-                        <Area type="monotone" dataKey="revenue" stroke="#ef4444" fill="url(#revenueGradient)" strokeWidth={3} />
-                        <Area type="monotone" dataKey="sponsors" stroke="#8b5cf6" fill="transparent" strokeWidth={2} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <LineChartPanel
+                    data={revenueSeries}
+                    xKey="date"
+                    area
+                    series={[
+                      { key: 'revenue', label: 'Revenue', color: '#ef4444' },
+                      { key: 'sponsors', label: 'Sponsors', color: '#8b5cf6' },
+                    ]}
+                  />
                 </CardContent>
               </Card>
 
@@ -192,18 +143,14 @@ export default function DashboardPage() {
                   <Badge variant="info">Real-time</Badge>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={growthSeries}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                        <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
-                        <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                        <Tooltip content={<ChartTooltip />} />
-                        <Line type="monotone" dataKey="subscribers" stroke="#2563eb" strokeWidth={3} dot={false} />
-                        <Line type="monotone" dataKey="views" stroke="#10b981" strokeWidth={3} dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <LineChartPanel
+                    data={growthSeries}
+                    xKey="date"
+                    series={[
+                      { key: 'subscribers', label: 'Subscribers', color: '#2563eb' },
+                      { key: 'views', label: 'Views', color: '#10b981' },
+                    ]}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -217,19 +164,15 @@ export default function DashboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceSeries}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                        <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
-                        <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                        <Tooltip content={<ChartTooltip />} />
-                        <Bar dataKey="views" fill="#ef4444" radius={[10, 10, 0, 0]} />
-                        <Bar dataKey="retention" fill="#2563eb" radius={[10, 10, 0, 0]} />
-                        <Bar dataKey="ctr" fill="#10b981" radius={[10, 10, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <BarChartPanel
+                    data={performanceSeries}
+                    xKey="name"
+                    bars={[
+                      { key: 'views', label: 'Views', color: '#ef4444' },
+                      { key: 'retention', label: 'Retention', color: '#2563eb' },
+                      { key: 'ctr', label: 'CTR', color: '#10b981' },
+                    ]}
+                  />
                 </CardContent>
               </Card>
 
@@ -241,17 +184,11 @@ export default function DashboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={audienceRetention}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                        <XAxis dataKey="point" tickLine={false} axisLine={false} fontSize={12} />
-                        <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                        <Tooltip content={<ChartTooltip />} />
-                        <Line type="monotone" dataKey="retention" stroke="#8b5cf6" strokeWidth={3} dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <LineChartPanel
+                    data={audienceRetention}
+                    xKey="point"
+                    series={[{ key: 'retention', label: 'Retention', color: '#8b5cf6' }]}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -294,18 +231,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-[190px_1fr] sm:items-center">
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={deviceAnalytics} dataKey="value" innerRadius={52} outerRadius={78} paddingAngle={4}>
-                            {deviceAnalytics.map((entry, index) => (
-                              <Cell key={entry.name} fill={chartColors[index % chartColors.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip content={<ChartTooltip />} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <DonutChartPanel data={deviceAnalytics} colors={chartColors} className="h-48" />
                     <div className="space-y-3">
                       {deviceAnalytics.map((device, index) => (
                         <div key={device.name} className="flex items-center justify-between rounded-xl bg-[rgb(var(--muted))]/60 p-3">
