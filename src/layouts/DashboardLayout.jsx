@@ -5,12 +5,14 @@ import Header from '../components/layout/Header'
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth < 1024 : false,
   )
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), [])
   const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), [])
+  const toggleSidebarCollapsed = useCallback(() => setSidebarCollapsed((v) => !v), [])
 
   useEffect(() => {
     const onResize = () => {
@@ -24,11 +26,17 @@ export default function DashboardLayout() {
   }, [])
 
   return (
-    <div className="flex min-h-screen bg-[#f9f9f9] text-[#0f0f0f]" style={{ fontFamily: 'Roboto, sans-serif' }}>
-      <Sidebar isOpen={sidebarOpen} isMobile={isMobile} onClose={closeSidebar} />
+    <div className="flex min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+      <Sidebar
+        isOpen={sidebarOpen}
+        isMobile={isMobile}
+        isCollapsed={sidebarCollapsed}
+        onClose={closeSidebar}
+        onToggleCollapse={toggleSidebarCollapsed}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header onMenuClick={toggleSidebar} />
-        <main className="flex-1 overflow-x-hidden">
+        <Header onMenuClick={toggleSidebar} onSidebarCollapse={toggleSidebarCollapsed} isSidebarCollapsed={sidebarCollapsed} />
+        <main className="flex-1 overflow-x-hidden pb-20 lg:pb-0">
           <Outlet />
         </main>
       </div>

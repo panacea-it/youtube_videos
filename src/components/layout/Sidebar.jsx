@@ -1,76 +1,119 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Play } from 'lucide-react'
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Play } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { SIDEBAR_DASHBOARD, SIDEBAR_GROUPS, getGroupIdForPath } from '../../constants/navigation'
 
-const childActive = 'rounded-lg bg-[#3d3d3d] text-white'
-const childIdle = 'rounded-lg text-[#f1f1f1] hover:bg-[#3d3d3d]/60'
+const childActive = 'bg-white/12 text-white ring-1 ring-white/10'
+const childIdle = 'text-slate-300 hover:bg-white/8 hover:text-white'
 
-function SubNavLink({ to, label, onNavigate }) {
+function TooltipLabel({ children }) {
+  return (
+    <span className="pointer-events-none absolute left-[4.25rem] top-1/2 z-50 hidden -translate-y-1/2 rounded-lg bg-slate-950 px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition group-hover/navitem:block group-hover/navitem:opacity-100">
+      {children}
+    </span>
+  )
+}
+
+function SubNavLink({ to, label, icon: Icon, onNavigate, isCollapsed }) {
   return (
     <NavLink
       to={to}
       onClick={onNavigate}
       end
       className={({ isActive }) =>
-        cn('block px-4 py-2.5 text-[13px] font-medium transition-colors', isActive ? childActive : childIdle)
+        cn(
+          'group/navitem relative flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all',
+          isCollapsed ? 'justify-center px-2' : 'pl-10',
+          isActive ? childActive : childIdle,
+        )
       }
     >
-      {label}
+      {Icon && <Icon className="h-4 w-4 shrink-0" />}
+      {!isCollapsed && <span className="min-w-0 truncate">{label}</span>}
+      {isCollapsed && <TooltipLabel>{label}</TooltipLabel>}
     </NavLink>
   )
 }
 
-function NavGroup({ group, isOpen, onToggle, onNavigate }) {
+function NavGroup({ group, isOpen, onToggle, onNavigate, isCollapsed }) {
   const { label, icon: Icon, children } = group
   const location = useLocation()
   const hasActiveChild = children.some(
     (c) => location.pathname === c.path || location.pathname.startsWith(`${c.path}/`),
   )
 
-  if (!isOpen) {
+  if (isCollapsed) {
     return (
-      <button
-        type="button"
-        onClick={onToggle}
-        className={cn(
-          'flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[14px] font-medium text-[#f1f1f1] transition-colors',
-          hasActiveChild ? 'bg-[#3d3d3d]' : 'hover:bg-[#3d3d3d]/50',
+      <div className="space-y-1">
+        <button
+          type="button"
+          onClick={onToggle}
+          className={cn(
+            'group/navitem relative flex h-11 w-full items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/8 hover:text-white',
+            hasActiveChild && 'bg-white/12 text-white ring-1 ring-white/10',
+          )}
+          aria-label={label}
+          title={label}
+        >
+          <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
+          <TooltipLabel>{label}</TooltipLabel>
+        </button>
+        {isOpen && (
+          <div className="space-y-1">
+            {children.map((child) => (
+              <SubNavLink
+                key={child.path}
+                to={child.path}
+                label={child.label}
+                icon={child.icon}
+                isCollapsed
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
         )}
-      >
-        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-        <span className="min-w-0 flex-1 truncate">{label}</span>
-        <ChevronDown className="h-4 w-4 shrink-0 opacity-80" />
-      </button>
+      </div>
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-xl bg-[#3d3d3d]/40 py-1">
+    <div className={cn('overflow-hidden rounded-2xl py-1 transition', isOpen && 'bg-white/6')}>
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full min-h-[44px] items-center gap-3 px-3.5 py-2.5 text-left text-[14px] font-medium text-[#f1f1f1]"
+        className={cn(
+          'flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[14px] font-semibold text-slate-200 transition hover:bg-white/8',
+          hasActiveChild && 'text-white',
+        )}
       >
-        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2.2} />
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        <ChevronUp className="h-4 w-4 shrink-0 opacity-80" />
+        <ChevronDown className={cn('h-4 w-4 shrink-0 opacity-80 transition-transform', isOpen && 'rotate-180')} />
       </button>
-      <div className="flex flex-col gap-0.5 px-2 pb-2">
-        {children.map((child) => (
-          <SubNavLink key={child.path} to={child.path} label={child.label} onNavigate={onNavigate} />
-        ))}
-      </div>
+      {isOpen && (
+        <div className="flex flex-col gap-0.5 px-2 pb-2">
+          {children.map((child) => (
+            <SubNavLink
+              key={child.path}
+              to={child.path}
+              label={child.label}
+              icon={child.icon}
+              onNavigate={onNavigate}
+              isCollapsed={false}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-export default function Sidebar({ isOpen, isMobile, onClose }) {
+export default function Sidebar({ isOpen, isMobile, isCollapsed, onClose, onToggleCollapse }) {
   const location = useLocation()
   const [openGroups, setOpenGroups] = useState(() => {
     const active = getGroupIdForPath(location.pathname)
-    return active ? { [active]: true } : { content: true }
+    return active ? { [active]: true } : { operations: true, insights: true }
   })
 
   useEffect(() => {
@@ -79,33 +122,43 @@ export default function Sidebar({ isOpen, isMobile, onClose }) {
   }, [location.pathname])
 
   const toggleGroup = (id) => setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }))
+  const desktopCollapsed = isCollapsed && !isMobile
 
   const sidebar = (
-    <aside className="flex h-full w-[240px] shrink-0 flex-col bg-[#0f0f0f] text-[#f1f1f1]">
-      <div className="flex items-center gap-2 border-b border-[#272727] px-4 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff0000]">
+    <aside
+      className={cn(
+        'flex h-full shrink-0 flex-col border-r border-white/10 bg-slate-950 text-slate-100 transition-[width] duration-300',
+        desktopCollapsed ? 'w-[84px]' : 'w-[286px]',
+      )}
+    >
+      <div className={cn('flex items-center gap-3 border-b border-white/10 px-4 py-4', desktopCollapsed && 'justify-center px-3')}>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#ff0000] shadow-lg shadow-red-500/25">
           <Play className="h-4 w-4 fill-white text-white" />
         </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-white">YouTube Studio</p>
-          <p className="truncate text-[11px] text-[#aaa]">Video admin</p>
-        </div>
+        {!desktopCollapsed && (
+          <div className="min-w-0">
+            <p className="truncate text-sm font-black tracking-tight text-white">ChannelOps Enterprise</p>
+            <p className="truncate text-[11px] font-medium text-slate-400">50+ channel command center</p>
+          </div>
+        )}
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      <nav className="scrollbar-thin flex-1 space-y-2 overflow-y-auto px-3 py-4">
         <NavLink
           to={SIDEBAR_DASHBOARD.path}
           onClick={onClose}
           end
           className={({ isActive }) =>
             cn(
-              'mb-2 flex min-h-[44px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-[14px] font-medium transition-colors',
-              isActive ? 'bg-[#3d3d3d] text-white' : 'text-[#f1f1f1] hover:bg-[#3d3d3d]/50',
+              'group/navitem relative mb-2 flex min-h-[44px] items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[14px] font-bold transition-all',
+              desktopCollapsed && 'justify-center px-2',
+              isActive ? 'bg-white text-slate-950 shadow-xl shadow-white/10' : 'text-slate-200 hover:bg-white/8 hover:text-white',
             )
           }
         >
           <SIDEBAR_DASHBOARD.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-          {SIDEBAR_DASHBOARD.label}
+          {!desktopCollapsed && SIDEBAR_DASHBOARD.label}
+          {desktopCollapsed && <TooltipLabel>{SIDEBAR_DASHBOARD.label}</TooltipLabel>}
         </NavLink>
 
         {SIDEBAR_GROUPS.map((group) => (
@@ -115,11 +168,31 @@ export default function Sidebar({ isOpen, isMobile, onClose }) {
             isOpen={Boolean(openGroups[group.id])}
             onToggle={() => toggleGroup(group.id)}
             onNavigate={onClose}
+            isCollapsed={desktopCollapsed}
           />
         ))}
       </nav>
+
+      <div className={cn('border-t border-white/10 p-3', desktopCollapsed && 'flex justify-center')}>
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="hidden h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/8 hover:text-white lg:flex"
+          aria-label="Toggle sidebar collapse"
+        >
+          {desktopCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {!desktopCollapsed && 'Collapse'}
+        </button>
+      </div>
     </aside>
   )
+
+  const bottomNavItems = [
+    SIDEBAR_DASHBOARD,
+    SIDEBAR_GROUPS[0].children[2],
+    SIDEBAR_GROUPS[1].children[0],
+    SIDEBAR_GROUPS[2].children[1],
+  ]
 
   if (!isMobile) return sidebar
 
@@ -136,6 +209,26 @@ export default function Sidebar({ isOpen, isMobile, onClose }) {
       >
         {sidebar}
       </div>
+      <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-4 rounded-2xl border border-slate-200 bg-white/95 p-1 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+        {bottomNavItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px] font-semibold transition',
+                isActive
+                  ? 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300'
+                  : 'text-slate-500 dark:text-slate-400',
+              )
+            }
+          >
+            <item.icon className="h-4 w-4" />
+            <span className="max-w-full truncate">{item.label.replace(' Management', '')}</span>
+          </NavLink>
+        ))}
+      </nav>
     </>
   )
 }
