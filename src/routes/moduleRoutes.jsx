@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import {
   Activity,
   BellRing,
@@ -7,14 +8,15 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import ModuleListPage from '../pages/ModuleListPage'
-import VideosPage from '../pages/content/VideosPage'
-import AnalyticsPage from '../pages/analytics/AnalyticsPage'
-import ChannelsPage from '../pages/channels/ChannelsPage'
-import SeoToolsPage from '../pages/seo/SeoToolsPage'
-import AiToolsPage from '../pages/ai/AiToolsPage'
-import TeamManagementPage from '../pages/team/TeamManagementPage'
-import ReportsPage from '../pages/reports/ReportsPage'
-import SettingsPage from '../pages/settings/SettingsPage'
+
+const VideosPage = lazy(() => import('../pages/content/VideosPage'))
+const AnalyticsPage = lazy(() => import('../pages/analytics/AnalyticsPage'))
+const ChannelsPage = lazy(() => import('../pages/channels/ChannelsPage'))
+const SeoToolsPage = lazy(() => import('../pages/seo/SeoToolsPage'))
+const AiToolsPage = lazy(() => import('../pages/ai/AiToolsPage'))
+const TeamManagementPage = lazy(() => import('../pages/team/TeamManagementPage'))
+const ReportsPage = lazy(() => import('../pages/reports/ReportsPage'))
+const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'))
 
 export const MODULE_ROUTE_ELEMENTS = [
   { path: 'channels', element: <ChannelsPage /> },
