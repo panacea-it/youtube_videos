@@ -1,14 +1,34 @@
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3'
 const LIVE_CHANNELS_STORAGE_KEY = 'youtube-admin-live-channels'
+const YOUTUBE_API_KEY_STORAGE_KEY = 'youtube-admin-youtube-api-key'
 
-export function hasYoutubeApiKey() {
+export function hasYoutubeEnvApiKey() {
   return Boolean(import.meta.env.VITE_YOUTUBE_API_KEY)
 }
 
+export function getStoredYoutubeApiKey() {
+  if (typeof window === 'undefined') return ''
+  return window.localStorage.getItem(YOUTUBE_API_KEY_STORAGE_KEY) || ''
+}
+
+export function saveYoutubeApiKey(apiKey) {
+  if (typeof window === 'undefined') return
+  const trimmed = apiKey.trim()
+  if (trimmed) {
+    window.localStorage.setItem(YOUTUBE_API_KEY_STORAGE_KEY, trimmed)
+  } else {
+    window.localStorage.removeItem(YOUTUBE_API_KEY_STORAGE_KEY)
+  }
+}
+
+export function hasYoutubeApiKey() {
+  return Boolean(import.meta.env.VITE_YOUTUBE_API_KEY || getStoredYoutubeApiKey())
+}
+
 function getYoutubeApiKey() {
-  const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY
+  const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY || getStoredYoutubeApiKey()
   if (!apiKey) {
-    throw new Error('Missing VITE_YOUTUBE_API_KEY. Add it to your .env file to fetch live YouTube data.')
+    throw new Error('Add a YouTube API key in this form or set VITE_YOUTUBE_API_KEY in your .env file.')
   }
   return apiKey
 }

@@ -15,8 +15,11 @@ import { channels as demoChannels } from '../../data/enterpriseData'
 import {
   fetchLiveChannel,
   fetchRecentUploads,
+  getStoredYoutubeApiKey,
+  hasYoutubeEnvApiKey,
   hasYoutubeApiKey,
   loadLiveChannels,
+  saveYoutubeApiKey,
   saveLiveChannels,
 } from '../../services/youtubeApi'
 import { Button } from '../../components/ui/button'
@@ -56,6 +59,7 @@ export default function ChannelsPage() {
   const [view, setView] = useState('table')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [channelIdentifier, setChannelIdentifier] = useState('narasimhaakkisetty2112')
+  const [apiKeyInput, setApiKeyInput] = useState(() => getStoredYoutubeApiKey())
   const [manager, setManager] = useState('Studio Admin')
   const [liveChannels, setLiveChannels] = useState(() => loadLiveChannels())
   const [selectedChannel, setSelectedChannel] = useState(() => loadLiveChannels()[0] || null)
@@ -63,6 +67,7 @@ export default function ChannelsPage() {
   const [loadingChannel, setLoadingChannel] = useState(false)
   const [loadingUploads, setLoadingUploads] = useState(false)
   const [error, setError] = useState('')
+  const shouldShowApiKeyInput = !hasYoutubeEnvApiKey()
 
   const allChannels = useMemo(() => {
     const liveIds = new Set(liveChannels.map((channel) => channel.id))
@@ -116,6 +121,12 @@ export default function ChannelsPage() {
     setLoadingChannel(true)
 
     try {
+      if (shouldShowApiKeyInput) {
+        if (!apiKeyInput.trim()) {
+          throw new Error('Enter your YouTube API key or add VITE_YOUTUBE_API_KEY to your .env file.')
+        }
+        saveYoutubeApiKey(apiKeyInput)
+      }
       const liveChannel = await fetchLiveChannel(channelIdentifier, manager || 'Studio Admin')
       setLiveChannels((current) => [liveChannel, ...current.filter((channel) => channel.id !== liveChannel.id)])
       setSelectedChannel(liveChannel)
@@ -168,15 +179,15 @@ export default function ChannelsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4 p-5" onSubmit={connectChannel}>
-                  {!hasYoutubeApiKey() && (
+                  {shouldShowApiKeyInput && (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
                       <div className="flex gap-3">
                         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                         <div>
-                          <p className="font-black">YouTube API key required</p>
+                          <p className="font-black">{hasYoutubeApiKey() ? 'Using browser-saved YouTube API key' : 'YouTube API key required'}</p>
                           <p className="mt-1">
-                            Add <code>VITE_YOUTUBE_API_KEY=your_key</code> to your local <code>.env</code> file,
-                            then restart <code>npm run dev</code>.
+                            Paste your API key below to use it immediately in this browser, or add
+                            <code> VITE_YOUTUBE_API_KEY=your_key</code> to <code>.env</code> and restart Vite.
                           </p>
                         </div>
                       </div>
@@ -198,6 +209,19 @@ export default function ChannelsPage() {
                       placeholder="narasimhaakkisetty2112"
                     />
                   </label>
+                  {shouldShowApiKeyInput && (
+                    <label className="block text-sm font-bold">
+                      YouTube API key
+                      <input
+                        value={apiKeyInput}
+                        onChange={(event) => setApiKeyInput(event.target.value)}
+                        className="mt-2 h-11 w-full rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-3 font-normal outline-none focus:border-blue-500"
+                        placeholder="AIza..."
+                        type="password"
+                        autoComplete="off"
+                      />
+                    </label>
+                  )}
                   <label className="block text-sm font-bold">
                     Assigned manager
                     <input
