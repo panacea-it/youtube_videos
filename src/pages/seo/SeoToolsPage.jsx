@@ -1,10 +1,10 @@
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Copy, SearchCheck, Sparkles, Tags, Wand2 } from 'lucide-react'
 import { growthSeries, seoKeywords } from '../../data/enterpriseData'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { SearchInput } from '../../components/ui/input'
+import { LineChartPanel } from '../../components/ui/charts'
 
 export default function SeoToolsPage() {
   return (
@@ -48,17 +48,12 @@ export default function SeoToolsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={growthSeries}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgb(148 163 184 / 0.25)" />
-                      <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
-                      <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="subscribers" stroke="#10b981" fill="#10b981" fillOpacity={0.18} strokeWidth={3} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                <LineChartPanel
+                  data={growthSeries}
+                  xKey="date"
+                  area
+                  series={[{ key: 'subscribers', label: 'Search lift', color: '#10b981' }]}
+                />
               </CardContent>
             </Card>
 
